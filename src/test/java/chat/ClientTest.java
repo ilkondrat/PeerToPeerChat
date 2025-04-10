@@ -1,17 +1,14 @@
 package chat;
 
+import chat.network.Client;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import static org.junit.Assert.*;
-
 class ClientTest {
-
     private ServerSocket testServer;
     private Thread testServerThread;
     private Client client;
@@ -52,8 +49,10 @@ class ClientTest {
             client.disconnect();
         }
 
-        if(testServer!=null){
-            testServer.close();}
+        if (testServer != null) {
+            testServer.close();
+        }
 
         testServerThread.join();
+    }
 }

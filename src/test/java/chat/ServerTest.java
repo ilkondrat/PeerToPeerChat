@@ -1,15 +1,12 @@
 package chat;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import chat.network.Server;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.*;
 import java.net.Socket;
-
-import static org.junit.Assert.*;
 
 class ServerTest {
     private Server server;

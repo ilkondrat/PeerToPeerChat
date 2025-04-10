@@ -1,4 +1,8 @@
-package chat;
+package chat.main;
+
+import chat.network.Client;
+import chat.network.Server;
+
 import java.io.IOException;
 import java.util.Scanner;
 
@@ -19,30 +23,10 @@ public class Main {
             Server server = new Server();
             try {
                 server.start(port);
-                System.out.println("Server is running. Waiting for a client...");
-
-                // Keep listening for messages from the client
-                while (true) {
-                    String message = server.receiveMessage();
-                    if (message == null || "exit".equalsIgnoreCase(message)) {
-                        System.out.println("Client disconnected.");
-                        break;
-                    }
-                    System.out.println("Client: " + message);
-
-                    // Send a response back to the client
-                    System.out.print("You (Server): ");
-                    String response = scanner.nextLine();
-                    server.sendMessage(response);
-                }
+                System.out.println("Server is running. Waiting for clients...");
+                // Server runs indefinitely, clients are handled in separate threads
             } catch (IOException e) {
                 System.err.println("Error starting the server: " + e.getMessage());
-            } finally {
-                try {
-                    server.stop();
-                } catch (IOException e) {
-                    System.err.println("Error stopping the server: " + e.getMessage());
-                }
             }
         } else if ("client".equalsIgnoreCase(choice)) {
             // Start the client
@@ -52,15 +36,17 @@ public class Main {
             int port = scanner.nextInt();
             scanner.nextLine(); // Clear buffer
 
+            System.out.print("Enter your name: ");
+            String name = scanner.nextLine();
+
             Client client = new Client();
             try {
-                client.connect(host, port);
-                System.out.println("Connected to the server!");
+                client.connect(host, port, name);
+                System.out.println("Connected to the server! You can start chatting now.");
 
-                // Keep sending messages to and receiving messages from the server
                 while (true) {
                     // Send a message to the server
-                    System.out.print("You (Client): ");
+                    System.out.print("You (" + name + "): ");
                     String message = scanner.nextLine();
                     client.sendMessage(message);
 
@@ -68,14 +54,6 @@ public class Main {
                         System.out.println("Disconnected from server.");
                         break;
                     }
-
-                    // Receive a response from the server
-                    String response = client.receiveMessage();
-                    if (response == null) {
-                        System.out.println("Server disconnected.");
-                        break;
-                    }
-                    System.out.println("Server: " + response);
                 }
             } catch (IOException e) {
                 System.err.println("Error connecting to the server: " + e.getMessage());
