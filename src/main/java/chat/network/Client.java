@@ -1,10 +1,12 @@
 package chat.network;
 
+import chat.controller.MessageSender;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class Client {
+public class Client implements MessageSender {
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
@@ -45,6 +47,10 @@ public class Client {
     public void disconnect() throws IOException {
         if (socket != null) socket.close();
     }
+    public boolean isConnected() {
+        return socket != null && socket.isConnected() && !socket.isClosed();
+    }
+
 
     public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
