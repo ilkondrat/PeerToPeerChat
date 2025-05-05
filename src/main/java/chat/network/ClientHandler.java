@@ -8,7 +8,7 @@ public class ClientHandler implements Runnable {
     private final Server server;
     private PrintWriter out;
     private BufferedReader in;
-    private String clientName;
+    String clientName;
 
     public ClientHandler(Socket socket, Server server) {
         this.socket = socket;
@@ -21,7 +21,7 @@ public class ClientHandler implements Runnable {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
             out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"), true);
 
-            // Запрашиваем имя клиента
+            // asking for name
             out.println("Enter your name:");
             clientName = in.readLine();
             System.out.println(clientName + " has joined the chat!");
@@ -29,6 +29,15 @@ public class ClientHandler implements Runnable {
 
             String message;
             while ((message = in.readLine()) != null) {
+                if (message.equalsIgnoreCase("//online")) {
+                    out.println("Online users: " + server.getOnlineUserNames());
+                } else if (message.equalsIgnoreCase("//welcome")) {
+                    out.println(server.getWelcomeMessage());
+                } else if (message.startsWith("//setwelcome")) {
+                    String newWelcome = message.substring("//setwelcome ".length());
+                    server.setWelcomeMessage(newWelcome);
+                    out.println("Welcome message updated.");
+                }
                 System.out.println("[" + clientName + "]: " + message);
                 server.broadcastMessage("[" + clientName + "]: " + message, this);
             }

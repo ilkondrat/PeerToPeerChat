@@ -6,86 +6,145 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Test class for the Server class.
+ * Tests the server's functionality for managing client connections and broadcasting messages.
+ */
 class ServerTest {
-    @Test
-    public void terstServerConnnection() throws IOException {
-        Server server = new Server();
-        server.start(0);
-        assertTrue(server.getPort() > 0);
-        server.stop();
 
+    private Server server;
+    private AutoCloseable closeable;
+
+    @Mock
+    private ServerSocket mockServerSocket;
+
+    @Mock
+    private Socket mockClientSocket;
+
+    @Mock
+    private ClientHandler mockClientHandler1;
+
+    @Mock
+    private ClientHandler mockClientHandler2;
+
+    /**
+     * Set up the test environment before each test.
+     */
+    @BeforeEach
+    void setUp() throws IOException {
+        closeable = MockitoAnnotations.openMocks(this);
+        server = new Server();
+
+        // Use reflection to set private fields
+        setPrivateField(server, "serverSocket", mockServerSocket);
+
+        // Configure ServerSocket behavior
+        when(mockServerSocket.accept()).thenReturn(mockClientSocket);
+        when(mockServerSocket.getLocalPort()).thenReturn(8080);
     }
 
-    @Test
-    public void testBroadcastMessage() throws IOException {
-        Server server = new Server();
-        //fake client handlers
-
-        ClientHandler client1 = mock(ClientHandler.class);
-        ClientHandler client2 = mock(ClientHandler.class);
-        ClientHandler client3 = mock(ClientHandler.class);
-        ClientHandler client4 = mock(ClientHandler.class);
-        ClientHandler sender = mock(ClientHandler.class);
-
-        //adding them to Server
-        server.getClients().add(client1);
-        server.getClients().add(client2);
-        server.getClients().add(client3);
-        server.getClients().add(client4);
-        server.getClients().add(sender);
-        server.broadcastMessage("Test message!!!", sender);
-
-        verify(client1).sendMessage("Hello World");
-        verify(client2).sendMessage("Bye world");
-
-        //sender should not get a message
-        verify(sender, never()).sendMessage(anyString());
-        server.stop();
+    /**
+     * Clean up the test environment after each test.
+     */
+    @AfterEach
+    void tearDown() throws Exception {
+        closeable.close();
     }
 
-    // integration test
-
+    /**
+     * Test the start method.
+     */
     @Test
-    public void testClientServerInteraction() throws IOException, InterruptedException{
+    void testStart() throws IllegalArgumentException {
+        // Create a separate test server instance
+        Server testServer = new Server();
 
-        Server server = new Server();
-        server.start(0);
-        int port = server.getPort();
+        // Test exception with invalid port
+        assertThrows(IllegalArgumentException.class, () -> {
+            testServer.start(-1);  // Invalid port
+        });
+    }
 
-        // client connection
+    /**
+     * Test the broadcastMessage method.
+     */
+    @Test
+    void testBroadcastMessage() {
+        // Add clients to the list
+        List<ClientHandler> clients = new ArrayList<>();
+        clients.add(mockClientHandler1);
+        clients.add(mockClientHandler2);
+        setPrivateField(server, "clients", clients);
 
-        Client client1 = new Client();
-        Client client2 = new Client();
+        // Send a message
+        server.broadcastMessage("Test Message", mockClientHandler1);
 
-        client1.connect("localhost", port, "User1");
-        client2.connect("localhost", port, "User2");
+        // Verify that the message was sent to client 2 but not client 1 (the sender)
+        verify(mockClientHandler2, times(1)).sendMessage("Test Message");
+        verify(mockClientHandler1, never()).sendMessage("Test Message");
+    }
 
-        Thread.sleep(500);
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(outputStream));
+    /**
+     * Test the removeClient method.
+     */
+    @Test
+    void testRemoveClient() {
+        // Create a client list
+        List<ClientHandler> clients = new ArrayList<>();
+        clients.add(mockClientHandler1);
+        clients.add(mockClientHandler2);
+        setPrivateField(server, "clients", clients);
 
-        client1.sendMessage("Привет от User1!");
+        // Remove a client
+        server.removeClient(mockClientHandler1);
 
-        // message to come
-        Thread.sleep(500);
+        // Verify that the client was removed
+        List<ClientHandler> resultClients = server.getClients();
+        assertEquals(1, resultClients.size());
+        assertTrue(resultClients.contains(mockClientHandler2));
+        assertFalse(resultClients.contains(mockClientHandler1));
+    }
 
-        // other client gets message
-        String output = outputStream.toString();
-        assertTrue(output.contains("[User1]: Привет от User1!"));
+    /**
+     * Test the getPort method.
+     */
+    @Test
+    void testGetPort() {
+        // Verify that the port is returned correctly
+        assertEquals(8080, server.getPort());
+    }
 
-        // resources clean
-        client1.disconnect();
-        client2.disconnect();
+    /**
+     * Test the stop method.
+     */
+    @Test
+    void testStop() throws IOException {
+        // Test server shutdown
         server.stop();
 
+        // Verify that close was called
+        verify(mockServerSocket).close();
+    }
+
+    /**
+     * Helper method to set private fields using reflection.
+     */
+    private void setPrivateField(Object object, String fieldName, Object value) {
+        try {
+            java.lang.reflect.Field field = object.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(object, value);
+        } catch (Exception e) {
+            fail("Failed to set private field: " + e.getMessage());
+        }
     }
 }

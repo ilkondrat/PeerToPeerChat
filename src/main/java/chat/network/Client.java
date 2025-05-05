@@ -6,11 +6,25 @@ import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 
+/**
+ * Client class for the P2P Chat application.
+ * This class handles the client-side communication with the server.
+ * It implements MessageSender interface to send messages to the server.
+ */
 public class Client implements MessageSender {
+
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
 
+    /**
+     * Connects to the chat server with the specified parameters.
+     *
+     * @param host The hostname or IP address of the server
+     * @param port The port number of the server
+     * @param name The name of the client to be displayed in the chat
+     * @throws IOException If an I/O error occurs when creating the socket or streams
+     */
     public void connect(String host, int port, String name) throws IOException {
         socket = new Socket(host, port);
         System.out.println("Connected to server: " + host + ":" + port);
@@ -38,47 +52,36 @@ public class Client implements MessageSender {
         }).start();
     }
 
+    /**
+     * Sends a message to the server.
+     *
+     * @param message The message to be sent
+     */
+    @Override
     public void sendMessage(String message) {
         if (out != null) {
             out.println(message);
         }
+
     }
 
+    /**
+     * Disconnects from the server by closing the socket.
+     *
+     * @throws IOException If an I/O error occurs when closing the socket
+     */
     public void disconnect() throws IOException {
         if (socket != null) socket.close();
     }
+
+    /**
+     * Checks if the client is currently connected to the server.
+     *
+     * @return true if connected, false otherwise
+     */
     public boolean isConnected() {
         return socket != null && socket.isConnected() && !socket.isClosed();
     }
 
 
-    public static void main(String[] args) throws IOException {
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.print("Enter the IP address of the server: ");
-        String host = scanner.nextLine();
-
-        System.out.print("Enter the port of the server: ");
-        int port = scanner.nextInt();
-        scanner.nextLine(); // Clear buffer
-
-        System.out.print("Enter your name: ");
-        String name = scanner.nextLine();
-
-        Client client = new Client();
-        client.connect(host, port, name);
-
-        System.out.println("Connected to the server! You can start chatting now.");
-
-        while (true) {
-            String message = scanner.nextLine();
-            if ("exit".equalsIgnoreCase(message)) { // Exit command
-                client.disconnect();
-                break;
-            }
-            client.sendMessage(message);
-        }
-
-        scanner.close();
-    }
 }
