@@ -1,87 +1,108 @@
 package chat.network;
 
 import chat.controller.MessageSender;
-
 import java.io.*;
 import java.net.Socket;
-import java.util.Scanner;
+import java.nio.charset.StandardCharsets;
 
-/**
- * Client class for the P2P Chat application.
- * This class handles the client-side communication with the server.
- * It implements MessageSender interface to send messages to the server.
- */
 public class Client implements MessageSender {
-
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
+    // private String clientUsername; // This can be managed by Main for display
 
     /**
-     * Connects to the chat server with the specified parameters.
-     *
-     * @param host The hostname or IP address of the server
-     * @param port The port number of the server
-     * @param name The name of the client to be displayed in the chat
-     * @throws IOException If an I/O error occurs when creating the socket or streams
+     * Establishes a basic socket connection to the server.
+     * @param host The server hostname or IP.
+     * @param port The server port.
+     * @throws IOException If connection fails.
      */
-    public void connect(String host, int port, String name) throws IOException {
+    public void connect(String host, int port) throws IOException {
         socket = new Socket(host, port);
-        System.out.println("Connected to server: " + host + ":" + port);
+        out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8), true);
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+        System.out.println("Connection established with server: " + host + ":" + port);
+    }
 
-        out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"), true);
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
-
-        // Send the client's name to the server
-        String serverPrompt = in.readLine();
-        if (serverPrompt != null) {
-            System.out.println(serverPrompt); // Display the prompt
-            out.println(name); // Send the name to the server
+    /**
+     * Attempts to log in to the server.
+     * @param username The username.
+     * @param password The password.
+     * @return true if login is successful, false otherwise.
+     * @throws IOException If communication error occurs.
+     */
+    public boolean login(String username, String password) throws IOException {
+        if (!isConnected() || out == null || in == null) {
+            throw new IOException("Client not connected. Call connect() first.");
         }
+        out.println("LOGIN " + username + " " + password);
+        String serverResponse = in.readLine();
+        if (serverResponse != null && serverResponse.startsWith("AUTH_SUCCESS:")) {
+            System.out.println("Server: " + serverResponse.substring("AUTH_SUCCESS:".length()));
+            startServerListenerThread(); // Start listening for chat messages
+            return true;
+        } else {
+            System.err.println("Server: " + (serverResponse != null ? serverResponse : "No response or login failed."));
+            return false;
+        }
+    }
 
-        // Start a thread to listen for messages from the server
+    /**
+     * Attempts to register a new account on the server.
+     * @param username The desired username.
+     * @param password The desired password.
+     * @return true if registration is successful, false otherwise.
+     * @throws IOException If communication error occurs.
+     */
+    public boolean register(String username, String password) throws IOException {
+        if (!isConnected() || out == null || in == null) {
+            throw new IOException("Client not connected. Call connect() first.");
+        }
+        out.println("REGISTER " + username + " " + password);
+        String serverResponse = in.readLine();
+        if (serverResponse != null && serverResponse.equals("REGISTER_SUCCESS")) {
+            return true;
+        } else {
+            System.err.println("Server: " + (serverResponse != null ? serverResponse : "No response or registration failed."));
+            return false;
+        }
+    }
+
+    private void startServerListenerThread() {
         new Thread(() -> {
             try {
-                String message;
-                while ((message = in.readLine()) != null) {
-                    System.out.println(message);
+                String messageFromServer;
+                while (isConnected() && (messageFromServer = in.readLine()) != null) {
+                    System.out.println(messageFromServer); // Display messages from server/other clients
                 }
             } catch (IOException e) {
-                System.err.println("Connection to server lost.");
+                if (isConnected()) { // Avoid error message if disconnect was intentional
+                    System.err.println("Connection to server lost.");
+                }
             }
         }).start();
     }
 
-    /**
-     * Sends a message to the server.
-     *
-     * @param message The message to be sent
-     */
     @Override
     public void sendMessage(String message) {
-        if (out != null) {
+        if (out != null && isConnected()) {
             out.println(message);
         }
-
     }
 
-    /**
-     * Disconnects from the server by closing the socket.
-     *
-     * @throws IOException If an I/O error occurs when closing the socket
-     */
     public void disconnect() throws IOException {
-        if (socket != null) socket.close();
+        if (socket != null && !socket.isClosed()) {
+            // Optionally send a "DISCONNECT" message to server if your protocol requires it
+            // out.println("//exit");
+            socket.close(); // This closes associated in/out streams too
+        }
+        // Nullify to help GC and ensure isConnected() is accurate
+        out = null;
+        in = null;
+        socket = null;
     }
 
-    /**
-     * Checks if the client is currently connected to the server.
-     *
-     * @return true if connected, false otherwise
-     */
     public boolean isConnected() {
         return socket != null && socket.isConnected() && !socket.isClosed();
     }
-
-
 }

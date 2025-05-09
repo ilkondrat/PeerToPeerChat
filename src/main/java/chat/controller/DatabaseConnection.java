@@ -13,16 +13,15 @@ public class DatabaseConnection {
         if (connection == null || connection.isClosed()) {
             try {
                 Class.forName(DatabaseConfig.getDriver());
-                connection = DriverManager.getConnection(DatabaseConfig.getUrl(), DatabaseConfig.getUsername(), DatabaseConfig.getPassword());
+                connection = DriverManager.getConnection(
+                        DatabaseConfig.getUrl(),
+                        DatabaseConfig.getUsername(),
+                        DatabaseConfig.getPassword());
             }
             catch (ClassNotFoundException e) {
                 throw new SQLException("Database driver not found",e);
             }
         } return connection;
      }
-    public static void closeConnection() throws SQLException {
-        if (connection != null && !connection.isClosed()) {
-            connection.close();
-        }
-    }
+
 }

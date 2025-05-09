@@ -52,7 +52,7 @@ class ClientHandlerTest {
         when(mockSocket.getOutputStream()).thenReturn(outputStream);
 
         // Create client handler with our mocked socket and server
-        clientHandler = new ClientHandler(mockSocket, mockServer);
+        //clientHandler = new ClientHandler(mockSocket, mockServer);
 
         // We won't set the private fields directly, instead we'll let the run method
         // initialize them naturally using our mocked streams

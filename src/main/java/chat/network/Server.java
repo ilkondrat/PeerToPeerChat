@@ -6,6 +6,7 @@ import lombok.Setter;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Server class for the P2P Chat application.
@@ -20,8 +21,6 @@ public class Server {
     /**
      * -- GETTER --
      *  Gets the list of connected clients.
-     *
-     * @return The list of connected clients
      */
     @Getter
     private final List<ClientHandler> clients = Collections.synchronizedList(new ArrayList<>());
@@ -44,7 +43,6 @@ public class Server {
             System.out.println("New client connected: " + clientSocket.getInetAddress());
 
             ClientHandler clientHandler = new ClientHandler(clientSocket, this);
-            clients.add(clientHandler);
             new Thread(clientHandler).start();
         }
     }
@@ -75,12 +73,28 @@ public class Server {
         clients.remove(clientHandler);
     }
 
+    /**
+     * Adds a client to the list of connected clients.
+     *
+     * @param clientHandler The client handler to add
+     */
+    public void addClient(ClientHandler clientHandler) {
+        clients.add(clientHandler);
+    }
+
     public String getOnlineUserNames() {
-        synchronized (clients) {
-            return clients.stream()
-                    .map(c -> c.clientName)
-                    .reduce((a, b) -> a + ", " + b)
-                    .orElse("No users online");
+        synchronized (clients) { // clients - это List<ClientHandler>
+            List<String> userNames = clients.stream()
+                    .map(ClientHandler::getClientName)
+                    .filter(Objects::nonNull)
+                    .filter(name -> !name.isEmpty())
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            if (userNames.isEmpty()) {
+                return "No users online";
+            }
+            return String.join(", ", userNames);
         }
     }
 

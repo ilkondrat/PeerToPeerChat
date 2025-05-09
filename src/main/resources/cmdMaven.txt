@@ -1,0 +1,5 @@
+mvn exec:java -Dexec.mainClass="src.main.java.chat.Main"
+mvn clean install
+mvn compile
+cd IdeaProjects\PeerToPeer\PeerToPeerChat
+mvn exec:java
