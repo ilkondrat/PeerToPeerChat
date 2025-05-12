@@ -1,6 +1,9 @@
 package chat.network;
 
 import chat.controller.MessageSender;
+
+import javax.sound.sampled.*;
+import java.awt.*;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -60,7 +63,7 @@ public class Client implements MessageSender {
         }
         out.println("REGISTER " + username + " " + password);
         String serverResponse = in.readLine();
-        if (serverResponse != null && serverResponse.equals("REGISTER_SUCCESS")) {
+        if (serverResponse != null && serverResponse.startsWith("REGISTER_SUCCESS:")) {
             return true;
         } else {
             System.err.println("Server: " + (serverResponse != null ? serverResponse : "No response or registration failed."));
@@ -74,6 +77,12 @@ public class Client implements MessageSender {
                 String messageFromServer;
                 while (isConnected() && (messageFromServer = in.readLine()) != null) {
                     System.out.println(messageFromServer); // Display messages from server/other clients
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    playNotificationSound();
                 }
             } catch (IOException e) {
                 if (isConnected()) { // Avoid error message if disconnect was intentional
@@ -104,5 +113,31 @@ public class Client implements MessageSender {
 
     public boolean isConnected() {
         return socket != null && socket.isConnected() && !socket.isClosed();
+    }
+
+    public void playNotificationSound() {
+        try {
+            InputStream audioSrc = getClass().getResourceAsStream("/notification.wav");
+            if (audioSrc == null) {
+                System.err.println("Warning: notification sound file not found.");
+                return;
+            }
+            InputStream bufferedIn = new BufferedInputStream(audioSrc);
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(bufferedIn);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioIn);
+            clip.start();
+
+            // Ждём окончания проигрывания
+            while (!clip.isRunning())
+                Thread.sleep(10);
+            while (clip.isRunning())
+                Thread.sleep(10);
+            clip.close();
+            audioIn.close();
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException | InterruptedException e) {
+            System.err.println("Error playing notification sound: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }
