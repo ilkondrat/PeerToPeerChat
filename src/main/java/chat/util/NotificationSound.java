@@ -11,39 +11,6 @@ import java.io.InputStream;
  */
 public class NotificationSound {
 
-    /**
-     * Enumeration representing different types of sound notifications.
-     * Each sound type is associated with a specific audio file path located in the application's resources.
-     * The paths are expected to be absolute from the root of the classpath (e.g., "/sounds/message.wav").
-     */
-//    public enum SoundType {
-//        /** Sound played when a client successfully connects to the server. */
-//        CLIENT_CONNECTED("/sounds/connect.wav"),
-//        /** Sound played when a client disconnects from the server. */
-//        CLIENT_DISCONNECTED("/sounds/disconnect.wav"),
-//        /** Sound played when a new chat message is received. */
-//        NEW_MESSAGE("/sounds/message.wav");
-//        // /** Optional: Sound played when an error event occurs. */
-//        // ERROR("/sounds/error.wav");
-//
-//        private final String filePath;
-//
-//        /**
-//         * Constructs a SoundType with the specified resource path.
-//         * @param filePath The absolute path to the sound file in the resources (e.g., "/sounds/filename.wav").
-//         */
-//        SoundType(String filePath) {
-//            this.filePath = filePath;
-//        }
-//
-//        /**
-//         * Gets the resource file path for this sound type.
-//         * @return The resource file path.
-//         */
-//        public String getFilePath() {
-//            return filePath;
-//        }
-//    }
 
     /**
      * Plays a sound associated with the given {@link SoundType}.

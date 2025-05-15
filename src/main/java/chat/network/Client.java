@@ -4,8 +4,6 @@ import chat.controller.MessageSender;
 import chat.util.NotificationSound;
 import chat.util.SoundType;
 
-import javax.sound.sampled.*;
-import java.awt.*;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -14,10 +12,10 @@ public class Client implements MessageSender {
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
-    // private String clientUsername; // This can be managed by Main for display
 
     /**
      * Establishes a basic socket connection to the server.
+     *
      * @param host The server hostname or IP.
      * @param port The server port.
      * @throws IOException If connection fails.
@@ -31,6 +29,7 @@ public class Client implements MessageSender {
 
     /**
      * Attempts to log in to the server.
+     *
      * @param username The username.
      * @param password The password.
      * @return true if login is successful, false otherwise.
@@ -46,7 +45,11 @@ public class Client implements MessageSender {
             System.out.println("Server: " + serverResponse.substring("AUTH_SUCCESS:".length()));
             NotificationSound connectionSound = new NotificationSound();
             connectionSound.playSound(SoundType.CLIENT_CONNECTED);
-            try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
 
             startServerListenerThread(); // Start listening for chat messages
             return true;
@@ -58,6 +61,7 @@ public class Client implements MessageSender {
 
     /**
      * Attempts to register a new account on the server.
+     *
      * @param username The desired username.
      * @param password The desired password.
      * @return true if registration is successful, false otherwise.
@@ -96,9 +100,13 @@ public class Client implements MessageSender {
     public void sendMessage(String message) {
         if (out != null && isConnected()) {
             out.println(message);
-            NotificationSound newMessageSound = new NotificationSound();
-            newMessageSound.playSound(SoundType.NEW_MESSAGE);
-            try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+//            NotificationSound newMessageSound = new NotificationSound();
+//            newMessageSound.playSound(SoundType.NEW_MESSAGE);
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
@@ -106,7 +114,9 @@ public class Client implements MessageSender {
         if (socket != null && !socket.isClosed()) {
             NotificationSound disconnectionSound = new NotificationSound();
             disconnectionSound.playSound(SoundType.CLIENT_DISCONNECTED);
-            try { Thread.sleep(50); } catch (InterruptedException e) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
             socket.close(); // This closes associated in/out streams too

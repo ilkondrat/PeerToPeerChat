@@ -1,6 +1,8 @@
 package chat.network;
 
 import chat.auth.AccountManager; // Ensure this import is correct for your project structure
+import chat.util.NotificationSound;
+import chat.util.SoundType;
 import lombok.Getter;
 
 import java.io.*;
@@ -137,6 +139,8 @@ public class ClientHandler implements Runnable {
                 } else {
                     // Default: broadcast chat message
                     String formattedMessage = "[" + clientName + "]: " + message;
+                    NotificationSound newMessageSound = new NotificationSound();
+                    newMessageSound.playSound(SoundType.NEW_MESSAGE);
                     System.out.println(formattedMessage); // Log on server
                     assert server != null;
                     server.broadcastMessage(formattedMessage, this);

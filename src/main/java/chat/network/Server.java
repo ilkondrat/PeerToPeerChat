@@ -1,6 +1,5 @@
 package chat.network;
 
-import chat.util.NotificationSound;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -83,7 +82,7 @@ public class Server {
     }
 
     public String getOnlineUserNames() {
-        synchronized (clients) { // clients - это List<ClientHandler>
+        synchronized (clients) { //  List<ClientHandler>
             List<String> userNames = clients.stream()
                     .map(ClientHandler::getClientName)
                     .filter(Objects::nonNull)
