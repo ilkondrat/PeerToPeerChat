@@ -1,5 +1,6 @@
 package chat.network;
 
+import chat.util.NotificationSound;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -41,7 +42,6 @@ public class Server {
         while (true) {
             Socket clientSocket = serverSocket.accept();
             System.out.println("New client connected: " + clientSocket.getInetAddress());
-
             ClientHandler clientHandler = new ClientHandler(clientSocket, this);
             new Thread(clientHandler).start();
         }

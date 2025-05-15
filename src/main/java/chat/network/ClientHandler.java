@@ -161,6 +161,7 @@ public class ClientHandler implements Runnable {
                 server.removeClient(this);
                 System.out.println("ClientHandler: " + this.clientName + " has left the chat.");
                 server.broadcastMessage(this.clientName + " has left the chat.", this);
+
             }
         }
     }

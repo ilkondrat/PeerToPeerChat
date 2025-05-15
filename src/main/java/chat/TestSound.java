@@ -13,8 +13,8 @@ public class TestSound {
         try {
             // Используем Client.class, чтобы контекст загрузки ресурса был таким же, как в вашем клиенте
             // если TestSound в другом пакете. Если в том же, можно this.getClass() или TestSound.class
-            InputStream audioSrc = Client.class.getResourceAsStream("/notification.wav");
-            System.out.println("Attempting to load: /sounds/notification.wav");
+            InputStream audioSrc = Client.class.getResourceAsStream("/sounds/disconnect.wav");
+            System.out.println("Attempting to load: /sounds/message.wav");
             if (audioSrc == null) {
                 System.err.println("TestSound: Warning: notification sound file not found.");
                 return;
