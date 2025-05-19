@@ -35,8 +35,7 @@ public class AccountManager {
             System.err.println("Username or password cannot be empty.");
             return false;
         }
-        String sql = "INSERT INTO users (username, password_hash) VALUES (?, crypt(?, gen_salt('bf', 8))) " +
-                "ON CONFLICT (username) DO NOTHING;";
+        String sql = "INSERT INTO users (username, password_hash) VALUES (?, crypt(?, gen_salt('bf', 8))) ON CONFLICT (username) DO NOTHING;";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -56,7 +55,8 @@ public class AccountManager {
         }
         String sql = "SELECT (password_hash) = crypt(?, password_hash) AS password_matches "
                 + "FROM users WHERE username = ?;";
-        try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, password);
             pstmt.setString(2, username);
             ResultSet rs = pstmt.executeQuery();
